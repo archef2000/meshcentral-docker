@@ -1,0 +1,43 @@
+name: Docker SSLH 
+
+on:
+  schedule:
+    - cron:  '0 0 * * FRI'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: new check version
+      id: new_version_check
+      run: |
+        releases=$(curl -s "https://api.github.com/repos/Ylianst/MeshCentral/releases?per_page=1")
+        last_week_releases=$(echo $releases | jq --arg date "$(date -d "1 months ago" +%Y-%m-%dT%H:%M:%SZ)" '.[] | select(.published_at >= $date)')
+        if [ ! "$last_week_releases" ]; then exit 0; fi
+        echo "meshcentral_version=$(echo $last_week_releases | jq -r .name )" >> "$GITHUB_OUTPUT"
+    - name: docker login
+      run: |
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USER }} --password-stdin 
+    - name: docker buildx multiarch
+      run: |
+        docker buildx create --name multiarch
+        docker buildx use multiarch
+        docker buildx inspect --bootstrap
+    -
+        # Add support for more platforms with QEMU (optional)
+        # https://github.com/docker/setup-qemu-action
+      name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+    -
+      name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+      
+    - name: docker build sslh
+      env:
+        DOCKER_USER: ${{ secrets.DOCKER_USER }}   
+      run: |
+        docker buildx build . -t $DOCKER_USER/meshcentral:latest -t $DOCKER_USER/meshcentral:${{ steps.new_version_check.outputs.meshcentral_version }} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8 --push
+
+# ,linux/ppc64le,linux/s390x,linux/386
