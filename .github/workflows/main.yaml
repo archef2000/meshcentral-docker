@@ -15,7 +15,7 @@ jobs:
         id: new_version_check
         run: |
           releases=$(curl -s "https://api.github.com/repos/Ylianst/MeshCentral/releases?per_page=1")
-          last_week_releases=$(echo $releases | jq --arg date "$(date -d "1 months ago" +%Y-%m-%dT%H:%M:%SZ)" '.[] | select(.published_at >= $date)')
+          last_week_releases=$(echo $releases | jq --arg date "$(date -d "2 months ago" +%Y-%m-%dT%H:%M:%SZ)" '.[] | select(.published_at >= $date)')
           echo "meshcentral_version=$(echo $last_week_releases | jq -r .name )" >> "$GITHUB_OUTPUT"
 
   build:
@@ -49,6 +49,6 @@ jobs:
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER }}   
       run: |
-        docker buildx build . -t $DOCKER_USER/meshcentral:latest -t $DOCKER_USER/meshcentral:${{ steps.new_version_check.outputs.meshcentral_version }} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8 --push
+        docker buildx build . -t $DOCKER_USER/meshcentral:latest -t $DOCKER_USER/meshcentral:${{ needs.check.outputs.meshcentral_version }} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8 --push
 
 # ,linux/ppc64le,linux/s390x,linux/386
