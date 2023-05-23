@@ -1,6 +1,8 @@
 # Meshcentral-Docker
-![Docker Pulls](https://img.shields.io/docker/pulls/typhonragewind/meshcentral?style=flat-square)
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/typhonragewind/meshcentral?style=flat-square)
+Made by [Typhonragewind](https://github.com/Typhonragewind/meshcentral-docker)
+
+![Docker Pulls](https://img.shields.io/docker/pulls/archef2000/meshcentral?style=flat-square)
+![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/archef2000/meshcentral?style=flat-square)
 
 ## About
 This is my implementation of the amazing MeshCentral software (https://github.com/Ylianst/MeshCentral) on a docker image, with some minor QOL settings to make it easier to setup.
@@ -31,7 +33,7 @@ services:
     meshcentral:
         restart: always
         container_name: meshcentral
-        image: typhonragewind/meshcentral
+        image: archef2000/meshcentral
         ports:
             - 8086:443  #MeshCentral will moan and try everything not to use port 80, but you can also use it if you so desire, just change the config.json according to your needs
         environment:
@@ -64,7 +66,7 @@ services:
         container_name: meshcentral
         depends_on:
             - 'mongodb'
-        image: typhonragewind/meshcentral:mongodb
+        image: archef2000/meshcentral:mongodb
         ports:
             - 8086:443 #MeshCentral will moan and try everything not to use port 80, but you can also use it if you so desire, just change the config.json according to your needs
         environment:
