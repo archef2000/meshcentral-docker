@@ -19,6 +19,7 @@ jobs:
           echo "meshcentral_version=$(echo $last_week_releases | jq -r .name )" >> "$GITHUB_OUTPUT"
 
   build:
+    needs: check
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
