@@ -6,24 +6,28 @@ on:
   workflow_dispatch:
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      meshcentral_version: ${{ steps.new_version_check.outputs.meshcentral_version }}
+    steps:
+      - name: new check version
+        id: new_version_check
+        run: |
+          releases=$(curl -s "https://api.github.com/repos/Ylianst/MeshCentral/releases?per_page=1")
+          last_week_releases=$(echo $releases | jq --arg date "$(date -d "1 months ago" +%Y-%m-%dT%H:%M:%SZ)" '.[] | select(.published_at >= $date)')
+          echo "meshcentral_version=$(echo $last_week_releases | jq -r .name )" >> "$GITHUB_OUTPUT"
+
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: new check version
-      id: new_version_check
-      run: |
-        releases=$(curl -s "https://api.github.com/repos/Ylianst/MeshCentral/releases?per_page=1")
-        last_week_releases=$(echo $releases | jq --arg date "$(date -d "1 months ago" +%Y-%m-%dT%H:%M:%SZ)" '.[] | select(.published_at >= $date)')
-        if [ ! "$last_week_releases" ]; then exit 0; fi
-        echo "$last_week_releases"
-        echo "meshcentral_version=$(echo $last_week_releases | jq -r .name )" >> "$GITHUB_OUTPUT"
     - name: docker login
-      if: steps.new_version_check.conclusion == 'success'
+      if: needs.check.outputs.meshcentral_version != ''
       run: |
         echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USER }} --password-stdin 
     - name: docker buildx multiarch
-      if: steps.new_version_check.conclusion == 'success'
+      if: needs.check.outputs.meshcentral_version != ''
       run: |
         docker buildx create --name multiarch
         docker buildx use multiarch
@@ -32,15 +36,15 @@ jobs:
         # Add support for more platforms with QEMU (optional)
         # https://github.com/docker/setup-qemu-action
       name: Set up QEMU
-      if: steps.new_version_check.conclusion == 'success'
+      if: needs.check.outputs.meshcentral_version != ''
       uses: docker/setup-qemu-action@v2
     -
       name: Set up Docker Buildx
-      if: steps.new_version_check.conclusion == 'success'
+      if: needs.check.outputs.meshcentral_version != ''
       uses: docker/setup-buildx-action@v2
       
     - name: docker build meshcentral
-      if: steps.new_version_check.conclusion == 'success'
+      if: needs.check.outputs.meshcentral_version != ''
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER }}   
       run: |
