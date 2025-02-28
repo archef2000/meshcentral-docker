@@ -49,7 +49,7 @@ jobs:
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER }}   
       run: |
-        docker buildx build ./builds/source -t $DOCKER_USER/meshcentral:source -t $DOCKER_USER/meshcentral:source-${{ needs.check.outputs.meshcentral_version }} --platform linux/amd64,linux/arm/v7,linux/arm64/v8 --push
+        docker buildx build ./builds/source -t $DOCKER_USER/meshcentral:source -t $DOCKER_USER/meshcentral:source-${{ needs.check.outputs.meshcentral_version }} --platform linux/amd64,linux/arm64/v8 --push
         docker buildx build ./builds/regular -t $DOCKER_USER/meshcentral:latest -t $DOCKER_USER/meshcentral:${{ needs.check.outputs.meshcentral_version }} --platform linux/amd64,linux/arm/v7,linux/arm64/v8 --push
 
 # ,linux/ppc64le,linux/s390x,linux/386
